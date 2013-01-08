@@ -7,17 +7,13 @@ require "spree_cielo/version"
 Gem::Specification.new do |s|
   s.name        = "spree_cielo"
   s.version     = SpreeCielo::VERSION
-  s.authors     = ["TODO: Your name"]
-  s.email       = ["TODO: Your email"]
-  s.homepage    = "TODO"
-  s.summary     = "TODO: Summary of SpreeCielo."
-  s.description = "TODO: Description of SpreeCielo."
+  s.authors     = ["Fábio Luiz Nery de Miranda"]
+  s.email       = ["fabio@miranti.net.br"]
+  s.homepage    = "https://github.com/fabiolnm/spree_cielo"
+  s.summary     = "A gem providing Cielo Gateways for Spree Commerce"
+  s.description = ""
 
   s.files = Dir["{app,config,db,lib}/**/*"] + ["MIT-LICENSE", "Rakefile", "README.rdoc"]
-  s.test_files = Dir["test/**/*"]
 
-  s.add_dependency "rails", "~> 3.2.10"
-  # s.add_dependency "jquery-rails"
-
-  s.add_development_dependency "sqlite3"
+  s.add_dependency "spree_core"
 end
