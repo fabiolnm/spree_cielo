@@ -1,0 +1,9 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/Fixtures.html
+
+one:
+  flag: MyString
+  installments: 1
+
+two:
+  flag: MyString
+  installments: 1
