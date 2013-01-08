@@ -1,0 +1,13 @@
+"pt-BR":
+  spree:
+    cielo:
+      payment:
+        select: Selecione
+        installments: Parcelas
+        flag: Bandeira
+        visa: Visa
+        mastercard: MasterCard
+        amex: American Express
+        elo: Elo
+        diners: Diners Club
+        discover: Discover

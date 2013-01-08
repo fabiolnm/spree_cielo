@@ -1,0 +1,12 @@
+<p class="field">
+  <%= label_tag nil, t('spree.cielo.payment.flag') %>
+  <%= select_tag :flag,
+    options_for_select(SpreeCielo::SUPPORTED_FLAGS.collect {|flag|
+      [ t("spree.cielo.payment.#{flag}"), flag ]
+    }), prompt: 'Selecione' %>
+</p>
+<p class="field">
+  <%= label_tag nil, t('spree.cielo.payment.installments') %>
+  <%= select_tag :installments,
+    options_for_select(1..SpreeCielo::MAX_INSTALLMENTS), prompt: 'Selecione' %>
+</p>

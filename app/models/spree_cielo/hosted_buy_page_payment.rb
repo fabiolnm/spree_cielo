@@ -11,6 +11,11 @@ module SpreeCielo
         self.class
       end
 
+      # determine what partial will be rendered for this method type
+      def method_type
+        "cielo_hosted"
+      end
+
       def authorize(money, source, options)
         order = source.payments.first.order
       end
