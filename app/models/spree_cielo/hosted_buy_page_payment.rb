@@ -2,6 +2,8 @@ module SpreeCielo
   class HostedBuyPagePayment < ActiveRecord::Base
     attr_accessible :flag, :installments
 
+    has_one :payment, class_name: 'Spree::Payment', foreign_key: :source_id
+
     class Gateway < Spree::Gateway
       def payment_source_class
         HostedBuyPagePayment
@@ -17,7 +19,7 @@ module SpreeCielo
       end
 
       def authorize(money, source, options)
-        order = source.payments.first.order
+        order = source.payment.order
       end
     end
   end
