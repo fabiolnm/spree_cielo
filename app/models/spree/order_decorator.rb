@@ -1,7 +1,7 @@
 Spree::Order.class_eval do
   def available_payment_options
     @available_payment_options ||= available_payment_methods.collect { |m|
-      payments.build payment_method_id: m.id
+      payments.build payment_method_id: m.id, source_attributes: { }
     }
   end
 end

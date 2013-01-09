@@ -2,25 +2,18 @@
   <legend><%= t(:payment_information) %></legend>
   <div data-hook="checkout_payment_step">
     <%= form.fields_for :payments, @order.available_payment_options do |p| %>
-    <p>
-      <label>
-        <% method = p.object.payment_method %>
-        <%= p.radio_button :payment_method_id, @order.payment_method.id %>
-        <%= t method.name, scope: :payment_methods, default: method.name %>
-      </label>
-    </p>
+      <% method = p.object.payment_method %>
+      <div>
+        <label>
+          <%= p.radio_button :payment_method_id, @order.payment_method.id %>
+          <%= t method.name, scope: :payment_methods, default: method.name %>
+        </label>
+        <fieldset>
+          <%= render partial: "spree/checkout/payment/#{method.method_type}",
+            locals: { payment_method: method, form: p } %>
+        </fieldset>
+      </div>
     <% end %>
-
-    <ul id="payment-methods" data-hook>
-      <%= form.fields_for :payments, @order.available_payment_options do |p| %>
-        <% method = p.object.payment_method %>
-        <li id="payment_method_<%= method.id %>" class="<%= 'last' if method == @order.available_payment_methods.last %>" data-hook>
-          <fieldset>
-            <%= render partial: "spree/checkout/payment/#{method.method_type}", payment_method: method, form: p %>
-          </fieldset>
-        </li>
-      <% end %>
-    </ul>
     <br style="clear:both;" />
     <div data-hook="coupon_code_field" data-hook></div>
   </div>
