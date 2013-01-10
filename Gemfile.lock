@@ -2,6 +2,7 @@ PATH
   remote: .
   specs:
     spree_cielo (0.0.1)
+      cieloz
       spree_core
 
 GEM
@@ -56,6 +57,7 @@ GEM
       uuidtools (~> 2.1)
     builder (3.0.4)
     cancan (1.6.8)
+    cieloz (0.0.1)
     cocaine (0.4.2)
     deface (0.9.1)
       nokogiri (~> 1.5.0)
