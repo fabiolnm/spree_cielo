@@ -1,4 +1,6 @@
 Spree::CheckoutController.class_eval do
+  prepend_before_filter :request_authorization_at_cielo_hosted_page
+
   private
   def object_params
     # For payment step, filter order parameters to produce the expected nested attributes for a single payment and its source, discarding attributes for payment methods other than the one selected
@@ -12,5 +14,19 @@ Spree::CheckoutController.class_eval do
       #end
     end
     params[:order]
+  end
+
+  def request_authorization_at_cielo_hosted_page
+    return unless request.put? and params[:state] == "payment"
+
+    payment = Spree::Order.new(params[:order]).payment
+    if payment.valid?
+      method = payment.payment_method
+      if method.type == "SpreeCielo::HostedBuyPagePayment::Gateway"
+        load_order
+        txn = method.authorization_transaction @order, payment.source, request.url
+        redirect_to txn.url_autenticacao
+      end
+    end
   end
 end

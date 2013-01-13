@@ -51,8 +51,29 @@ module SpreeCielo
         preferences[:soft_descriptor] || ""
       end
 
-      def authorize(money, source, options)
-        order = source.payment.order
+      def authorization_transaction order, source, callback_url
+        ec = Cieloz::DadosEc.new numero: api_number, chave: api_key
+        pedido = Cieloz::RequisicaoTransacao::DadosPedido
+        .new numero: order.number,
+          valor: (order.total * 100).round,
+          moeda: 986, # TODO use https://github.com/hexorx/countries
+          idioma: "PT",
+          descricao: "", # TODO provide a description?
+          data_hora: Time.now,
+          soft_descriptor: soft_descriptor
+
+        pagamento = Cieloz::RequisicaoTransacao::FormaPagamento.new bandeira: source.flag
+        pagamento.parcelado_loja source.installments
+
+        txn = Cieloz::RequisicaoTransacao.new
+        txn.dados_ec = ec
+        txn.dados_pedido = pedido
+        txn.forma_pagamento = pagamento
+        txn.url_retorno = callback_url
+        txn.autorizacao_direta
+        txn.nao_capturar_automaticamente
+
+        txn.submit
       end
     end
   end
