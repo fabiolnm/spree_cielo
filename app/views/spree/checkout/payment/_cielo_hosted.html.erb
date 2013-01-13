@@ -2,13 +2,13 @@
   <p class="field">
     <%= s.label t 'spree.cielo.payment.flag' %>
     <%= s.select :flag,
-      options_for_select(SpreeCielo::SUPPORTED_FLAGS.collect {|flag|
+      options_for_select(Cieloz::Bandeiras::ALL.collect {|flag|
       [ t("spree.cielo.payment.#{flag}"), flag ]
     }), prompt: 'Selecione' %>
   </p>
   <p class="field">
     <%= s.label t 'spree.cielo.payment.installments' %>
     <%= s.select :installments,
-      options_for_select(1..SpreeCielo::MAX_INSTALLMENTS), prompt: 'Selecione' %>
+      options_for_select(1..Cieloz::MAX_INSTALLMENTS), prompt: 'Selecione' %>
   </p>
 <% end %>
