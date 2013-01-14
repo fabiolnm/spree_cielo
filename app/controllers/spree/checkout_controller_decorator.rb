@@ -24,7 +24,19 @@ Spree::CheckoutController.class_eval do
       method = payment.payment_method
       if method.type == "SpreeCielo::HostedBuyPagePayment::Gateway"
         load_order
-        txn = method.authorization_transaction @order, payment.source, request.url
+        source = payment.source
+
+        txn = method.authorization_transaction @order, source, request.url
+
+        payment = @order.payments.create source_attributes: {
+          xml: txn.xml,
+          tid: txn.tid,
+          flag: source.flag,
+          status: txn.status,
+          url: txn.url_autenticacao,
+          installments: source.installments
+        }, payment_method_id: method.id
+
         redirect_to txn.url_autenticacao
       end
     end

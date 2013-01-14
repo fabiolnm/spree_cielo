@@ -1,6 +1,6 @@
 module SpreeCielo
   class HostedBuyPagePayment < ActiveRecord::Base
-    attr_accessible :flag, :installments
+    attr_accessible :flag, :installments, :xml, :tid, :status, :url
 
     has_one :payment, class_name: 'Spree::Payment', foreign_key: :source_id
 
