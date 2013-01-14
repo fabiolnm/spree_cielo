@@ -51,6 +51,11 @@ module SpreeCielo
         preferences[:soft_descriptor] || ""
       end
 
+      def authorize money, payment, options = {}
+        # validate payment via requisicao-consulta service
+        ActiveMerchant::Billing::Response.new true, ''
+      end
+
       def authorization_transaction order, source, callback_url
         ec = Cieloz::DadosEc.new numero: api_number, chave: api_key
         pedido = Cieloz::RequisicaoTransacao::DadosPedido

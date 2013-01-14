@@ -1,6 +1,10 @@
 Spree::CheckoutController.class_eval do
   prepend_before_filter :request_authorization_at_cielo_hosted_page
 
+  def cielo_callback
+    update
+  end
+
   private
   def object_params
     # For payment step, filter order parameters to produce the expected nested attributes for a single payment and its source, discarding attributes for payment methods other than the one selected
@@ -26,7 +30,8 @@ Spree::CheckoutController.class_eval do
         load_order
         source = payment.source
 
-        txn = method.authorization_transaction @order, source, request.url
+        callback_url = request.url.gsub request.path, cielo_callback_path
+        txn = method.authorization_transaction @order, source, callback_url
 
         payment = @order.payments.create source_attributes: {
           xml: txn.xml,
