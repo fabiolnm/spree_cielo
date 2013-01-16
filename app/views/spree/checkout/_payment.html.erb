@@ -5,7 +5,7 @@
       <% method = p.object.payment_method %>
       <div>
         <label>
-          <%= p.radio_button :payment_method_id, @order.payment_method.id %>
+          <%= p.radio_button :payment_method_id, method.id %>
           <%= t method.name, scope: :payment_methods, default: method.name %>
         </label>
         <fieldset>
