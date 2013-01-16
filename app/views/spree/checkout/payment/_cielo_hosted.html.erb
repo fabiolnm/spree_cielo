@@ -1,14 +1,12 @@
-<%= form.fields_for :source, form.object.build_source do |s| %>
-  <p class="field">
-    <%= s.label t 'spree.cielo.payment.flag' %>
-    <%= s.select :flag,
-      options_for_select(Cieloz::Bandeiras::ALL.collect {|flag|
-      [ t("spree.cielo.payment.#{flag}"), flag ]
-    }), prompt: 'Selecione' %>
-  </p>
-  <p class="field">
-    <%= s.label t 'spree.cielo.payment.installments' %>
-    <%= s.select :installments,
-      options_for_select(1..Cieloz::MAX_INSTALLMENTS), prompt: 'Selecione' %>
-  </p>
-<% end %>
+<p class="field">
+  <%= label_tag t 'spree.cielo.payment.flag' %>
+  <%= select_tag "payment_source[#{payment_method.id}][flag]",
+    options_for_select(Cieloz::Bandeiras::ALL.collect {|flag|
+    [ t("spree.cielo.payment.#{flag}"), flag ]
+  }), prompt: 'Selecione' %>
+</p>
+<p class="field">
+  <%= label_tag t 'spree.cielo.payment.installments' %>
+  <%= select_tag "payment_source[#{payment_method.id}][installments]",
+    options_for_select(1..Cieloz::MAX_INSTALLMENTS), prompt: 'Selecione' %>
+</p>
