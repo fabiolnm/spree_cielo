@@ -19,17 +19,28 @@ Spree::CheckoutController.class_eval do
         callback_url = request.url.gsub request.path, cielo_callback_path
         txn = method.authorization_transaction @order, source, callback_url
 
-        # FIXME handle transaction when response is error
-        payment = @order.payments.create source_attributes: {
-          xml: txn.xml,
-          tid: txn.tid,
-          flag: source.flag,
-          status: txn.status,
-          url: txn.url_autenticacao,
-          installments: source.installments
-        }, payment_method_id: method.id
+        if txn.success?
+          payment = @order.payments.create source_attributes: {
+            xml: txn.xml,
+            tid: txn.tid,
+            flag: source.flag,
+            status: txn.status,
+            url: txn.url_autenticacao,
+            installments: source.installments
+          }, payment_method_id: method.id
 
-        redirect_to txn.url_autenticacao
+          redirect_to txn.url_autenticacao
+        else
+          @order.payments.create source_attributes: {
+            xml: txn.xml,
+            status: txn.codigo,
+            flag: source.flag,
+            installments: source.installments
+          }, payment_method_id: method.id
+
+          flash[:error] = t :payment_processing_failed
+          redirect_to checkout_state_path @order.state
+        end
       end
     end
   end
