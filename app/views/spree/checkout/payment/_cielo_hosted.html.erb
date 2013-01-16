@@ -1,12 +1,20 @@
+<%
+  payment = @order.payments.detect { |p| p.payment_method == payment_method }
+  unless payment.nil?
+    source = payment.source
+    flag = source.flag
+    installments = source.installments
+  end
+%>
 <p class="field">
   <%= label_tag t 'spree.cielo.payment.flag' %>
   <%= select_tag "payment_source[#{payment_method.id}][flag]",
     options_for_select(Cieloz::Bandeiras::ALL.collect {|flag|
-    [ t("spree.cielo.payment.#{flag}"), flag ]
-  }), prompt: 'Selecione' %>
+      [ t("spree.cielo.payment.#{flag}"), flag ]
+    }, flag), prompt: 'Selecione' %>
 </p>
 <p class="field">
   <%= label_tag t 'spree.cielo.payment.installments' %>
   <%= select_tag "payment_source[#{payment_method.id}][installments]",
-    options_for_select(1..Cieloz::MAX_INSTALLMENTS), prompt: 'Selecione' %>
+    options_for_select(1..Cieloz::MAX_INSTALLMENTS, installments), prompt: 'Selecione' %>
 </p>
