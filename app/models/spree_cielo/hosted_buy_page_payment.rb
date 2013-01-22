@@ -67,8 +67,8 @@ module SpreeCielo
           data_hora: Time.now,
           soft_descriptor: soft_descriptor
 
-        pagamento = Cieloz::RequisicaoTransacao::FormaPagamento.new bandeira: source.flag
-        pagamento.parcelado_loja source.installments
+        pagamento = Cieloz::RequisicaoTransacao::FormaPagamento.new
+                    .parcelado_loja source.flag, source.installments
 
         txn = Cieloz::RequisicaoTransacao.new
         txn.dados_ec = ec
