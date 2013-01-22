@@ -11,9 +11,11 @@
     <% end %>
 
     <ul id="payment-methods" data-hook>
+      <% current_payment_method = @order.payment.nil? ?
+        @order.available_payment_methods.first : @order.payment.payment_method %>
       <% @order.available_payment_methods.each do |method| %>
         <li id="payment_method_<%= method.id %>"
-          style="display: <%= "#{@order.payment.payment_method == method ? 'block' : 'none'}" %>"
+          style="display: <%= "#{current_payment_method == method ? 'block' : 'none'}" %>"
           class="<%= 'last' if method == @order.available_payment_methods.last %>" data-hook>
           <fieldset>
             <%= render :partial => "spree/checkout/payment/#{method.method_type}", :locals => { :payment_method => method } %>
