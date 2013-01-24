@@ -15,6 +15,6 @@ Gem::Specification.new do |s|
 
   s.files = Dir["{app,config,db,lib}/**/*"] + ["MIT-LICENSE", "Rakefile", "README.rdoc"]
 
-  s.add_dependency "spree_core"
-  s.add_dependency "cieloz"
+  s.add_dependency "spree_core", "1.2.2"
+  s.add_dependency "cieloz", "0.0.1"
 end
