@@ -4,6 +4,10 @@ module SpreeCielo
 
     has_one :payment, class_name: 'Spree::Payment', foreign_key: :source_id
 
+    def actions
+      %w(capture cancel)
+    end
+
     class Gateway < Spree::Gateway
       attr_accessible :preferred_api_number,
         :preferred_api_key, :preferred_soft_descriptor
@@ -52,12 +56,22 @@ module SpreeCielo
       end
 
       def authorize money, payment, options = {}
+        response = ''
+        autorizada = false
+
         # validate payment via requisicao-consulta service
-        ActiveMerchant::Billing::Response.new true, ''
+        consulta = Cieloz::RequisicaoConsulta.new dados_ec: ec, tid: payment.tid
+        res = consulta.submit
+        if consulta.valid?
+          autorizada = res.autorizada?
+          response = res.xml if not autorizada
+        else
+          response = consulta.errors.messages
+        end
+        ActiveMerchant::Billing::Response.new autorizada, response
       end
 
       def authorization_transaction order, source, callback_url
-        ec = Cieloz::DadosEc.new numero: api_number, chave: api_key
         pedido = Cieloz::RequisicaoTransacao::DadosPedido
         .new numero: order.number,
           valor: (order.total * 100).round,
@@ -79,6 +93,11 @@ module SpreeCielo
         txn.nao_capturar_automaticamente
 
         txn.submit
+      end
+
+      private
+      def ec
+        Cieloz::DadosEc.new numero: api_number, chave: api_key
       end
     end
   end
