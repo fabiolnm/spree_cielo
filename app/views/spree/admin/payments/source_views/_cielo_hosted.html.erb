@@ -1,0 +1,30 @@
+<fieldset data-hook="cielo_hosted">
+  <legend>Cartão de Crédito Cielo</legend>
+
+  <% source = payment.source %>
+  <table class="index">
+    <tr><th colspan="2">Forma de Pagamento</th></tr>
+    <tr>
+      <th>Bandeira</th>
+      <td><%= source.flag %></td>
+    </tr>
+    <tr>
+      <th>Parcelamento</th>
+      <td><%= source.installments %>x</td>
+    </tr>
+    <tr>
+      <th>Status</th>
+      <td><%= source.display_status %></td>
+    </tr>
+    <tr>
+      <th>ID Transação Cielo (TID)</th>
+      <td><%= source.tid %></td>
+    </tr>
+    <tr><th colspan="2">Histórico</th></tr>
+    <tr>
+      <th>Autorização</th>
+      <td><%= source.formatted_xml %></td>
+    </tr>
+  </table>
+</fieldset>
+

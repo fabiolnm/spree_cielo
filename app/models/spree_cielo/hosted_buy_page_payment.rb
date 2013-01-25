@@ -8,6 +8,24 @@ module SpreeCielo
       %w(capture cancel)
     end
 
+    def display_status
+      Cieloz::Transacao::STATUSES[status.to_s]
+    end
+
+    def formatted_xml
+      format_xml xml
+    end
+
+    def format_xml source
+      indented = Nokogiri::XML(source).to_xml
+
+      escaped = CGI::escapeHTML indented
+      escaped.gsub! " ", "&nbsp;"
+      escaped.gsub! "\n", "<br />"
+
+      escaped.html_safe
+    end
+
     class Gateway < Spree::Gateway
       attr_accessible :preferred_api_number,
         :preferred_api_key, :preferred_soft_descriptor
