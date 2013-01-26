@@ -71,6 +71,7 @@ module SpreeCielo
         if consulta.valid?
           response = res.xml
           autorizada = res.autorizada?
+          source.update_attributes status: res.status
         else
           response = consulta.errors.messages
         end
@@ -82,11 +83,15 @@ module SpreeCielo
         response = ''
         capturada = false
 
+        payment = Spree::Payment.find_by_response_code tid
+        source = payment.source
+
         captura = Cieloz::RequisicaoCaptura.new dados_ec: ec, tid: tid, valor: money
         res = captura.submit
         if captura.valid?
           response = res.xml
           capturada = res.capturada?
+          source.update_attributes status: res.status
         else
           response = captura.errors.messages
         end
