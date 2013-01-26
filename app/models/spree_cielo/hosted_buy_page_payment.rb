@@ -5,7 +5,10 @@ module SpreeCielo
     has_one :payment, class_name: 'Spree::Payment', foreign_key: :source_id
 
     def actions
-      %w(capture cancel)
+      res = []
+      status = display_status
+      res << :capture if status == :autorizada
+      res << :cancel  if status != :cancelada
     end
 
     def display_status
