@@ -77,6 +77,22 @@ module SpreeCielo
         ActiveMerchant::Billing::Response.new autorizada, response
       end
 
+      # source is only supported in profile gateways
+      def capture money, tid, options = {}
+        response = ''
+        capturada = false
+
+        captura = Cieloz::RequisicaoCaptura.new dados_ec: ec, tid: tid, valor: money
+        res = captura.submit
+        if captura.valid?
+          response = res.xml
+          capturada = res.capturada?
+        else
+          response = captura.errors.messages
+        end
+        ActiveMerchant::Billing::Response.new capturada, response
+      end
+
       def authorization_transaction order, source, callback_url
         pedido = Cieloz::RequisicaoTransacao::DadosPedido
         .new numero: order.number,
