@@ -12,20 +12,6 @@ module SpreeCielo
       Cieloz::Transacao::STATUSES[status.to_s]
     end
 
-    def formatted_xml
-      format_xml xml
-    end
-
-    def format_xml source
-      indented = Nokogiri::XML(source).to_xml
-
-      escaped = CGI::escapeHTML indented
-      escaped.gsub! " ", "&nbsp;"
-      escaped.gsub! "\n", "<br />"
-
-      escaped.html_safe
-    end
-
     class Gateway < Spree::Gateway
       attr_accessible :preferred_api_number,
         :preferred_api_key, :preferred_soft_descriptor
@@ -73,16 +59,16 @@ module SpreeCielo
         preferences[:soft_descriptor] || ""
       end
 
-      def authorize money, payment, options = {}
+      def authorize money, source, options = {}
         response = ''
         autorizada = false
 
         # validate payment via requisicao-consulta service
-        consulta = Cieloz::RequisicaoConsulta.new dados_ec: ec, tid: payment.tid
+        consulta = Cieloz::RequisicaoConsulta.new dados_ec: ec, tid: source.tid
         res = consulta.submit
         if consulta.valid?
+          response = res.xml
           autorizada = res.autorizada?
-          response = res.xml if not autorizada
         else
           response = consulta.errors.messages
         end

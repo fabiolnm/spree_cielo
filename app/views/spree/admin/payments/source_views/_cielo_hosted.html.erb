@@ -23,8 +23,15 @@
     <tr><th colspan="2">Histórico</th></tr>
     <tr>
       <th>Autorização</th>
-      <td><%= source.formatted_xml %></td>
+      <td><%= format_xml source.xml %></td>
     </tr>
+    <tr><th colspan="2">Registros de Log</th></tr>
+    <% payment.log_entries.each do |log| %>
+    <tr>
+      <th><%= log.created_at %></th>
+      <td><%= format_xml YAML::load(log.details).message %></td>
+    </tr>
+    <% end %>
   </table>
 </fieldset>
 

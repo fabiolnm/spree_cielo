@@ -8,6 +8,10 @@ module SpreeCielo
       ]
     end
 
+    initializer 'spree_cielo.application_helper' do |app|
+      ActionView::Base.send :include, SpreeCielo::ApplicationHelper
+    end
+
     config.to_prepare do
       # Load engine's model / class decorators
       Dir.glob(File.join(File.dirname(__FILE__), "../../app/**/*_decorator*.rb")) do |c|
