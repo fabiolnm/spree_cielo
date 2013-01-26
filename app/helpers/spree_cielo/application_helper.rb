@@ -1,7 +1,7 @@
 module SpreeCielo
   module ApplicationHelper
     def format_xml source
-      indented = Nokogiri::XML(source).to_xml
+      indented = Nokogiri::XML(source).to_xml.force_encoding "UTF-8"
 
       escaped = CGI::escapeHTML indented
       escaped.gsub! " ", "&nbsp;"
