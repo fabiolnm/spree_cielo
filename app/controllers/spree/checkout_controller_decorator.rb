@@ -41,14 +41,16 @@ Spree::CheckoutController.class_eval do
 
         url = checkout_state_path @order.state
         if txn.success?
-          payment = @order.payments.create source_attributes: {
+          payment = @order.payments.build source_attributes: {
             xml: txn.xml,
-            tid: txn.tid,
             flag: source.flag,
             status: txn.status,
             url: txn.url_autenticacao,
             installments: source.installments
           }, payment_method_id: method.id
+          payment.response_code = txn.tid
+          payment.save
+
           url = txn.url_autenticacao
         else
           @order.payments.create source_attributes: {

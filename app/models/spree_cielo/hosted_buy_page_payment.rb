@@ -1,6 +1,6 @@
 module SpreeCielo
   class HostedBuyPagePayment < ActiveRecord::Base
-    attr_accessible :flag, :installments, :xml, :tid, :status, :url
+    attr_accessible :flag, :installments, :xml, :status, :url
 
     has_one :payment, class_name: 'Spree::Payment', foreign_key: :source_id
 
@@ -63,8 +63,10 @@ module SpreeCielo
         response = ''
         autorizada = false
 
+        tid = source.payment.response_code
+
         # validate payment via requisicao-consulta service
-        consulta = Cieloz::RequisicaoConsulta.new dados_ec: ec, tid: source.tid
+        consulta = Cieloz::RequisicaoConsulta.new dados_ec: ec, tid: tid
         res = consulta.submit
         if consulta.valid?
           response = res.xml
