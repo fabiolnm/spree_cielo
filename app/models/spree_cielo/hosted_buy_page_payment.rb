@@ -8,7 +8,8 @@ module SpreeCielo
       res = []
       status = display_status
       res << :capture if status == :autorizada
-      res << :cancel  if status != :cancelada
+      res << :credit  if status != :cancelada
+      res
     end
 
     def display_status
@@ -99,6 +100,26 @@ module SpreeCielo
           response = captura.errors.messages
         end
         ActiveMerchant::Billing::Response.new capturada, response
+      end
+
+      # source is only supported in profile gateways
+      def credit money, tid, options = {}
+        response = ''
+        cancelada = false
+
+        payment = Spree::Payment.find_by_response_code tid
+        source = payment.source
+
+        cancela = Cieloz::RequisicaoCancelamento.new dados_ec: ec, tid: tid, valor: money
+        res = cancela.submit
+        if cancela.valid?
+          response = res.xml
+          cancelada = res.cancelada?
+          source.update_attributes status: res.status
+        else
+          response = cancela.errors.messages
+        end
+        ActiveMerchant::Billing::Response.new cancelada, response
       end
 
       def authorization_transaction order, source, callback_url
