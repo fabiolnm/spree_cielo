@@ -2,8 +2,7 @@ Spree::CheckoutController.class_eval do
   prepend_before_filter :request_authorization_at_cielo_hosted_page
 
   def cielo_callback
-    payment = @order.payment
-    if is_cielo? payment
+    if current_cielo_payment
       if @order.next
         state_callback :after
         if @order.state == 'complete' || @order.completed?
@@ -20,49 +19,65 @@ Spree::CheckoutController.class_eval do
   end
 
   private
-  def is_cielo? payment
-    unless payment.nil?
-      method = payment.payment_method
-      return method if method.type == "SpreeCielo::HostedBuyPagePayment::Gateway"
-    end
+  def is_cielo? payment_method
+    payment_method.is_a? SpreeCielo::HostedBuyPagePayment::Gateway and payment_method
+  end
+
+  def before_payment
+    # disables spree default behavior that erases previous payment history
+    # current_order.payments.destroy_all if request.put?
   end
 
   def request_authorization_at_cielo_hosted_page
-    return unless request.put? and params[:state] == "payment"
+    return unless request.put? and
+      params[:state] == "payment" and
+      method = is_cielo?(payment_method_from_params)
 
-    load_order
-    payment = Spree::Order.new(object_params).payment
-    method = is_cielo? payment
-    if method and payment.valid?
-        source = payment.source
+    url = checkout_state_path @order.state
+    if payment.valid?
+      callback_url = request.url.gsub request.path, cielo_callback_path
+      txn = method.authorization_transaction @order, payment.source, callback_url
 
-        callback_url = request.url.gsub request.path, cielo_callback_path
-        txn = method.authorization_transaction @order, source, callback_url
+      if txn.success?
+        url = txn.url_autenticacao
+        payment.response_code = txn.tid
+      else
+        flash[:error] = t :payment_processing_failed
+      end
 
-        url = checkout_state_path @order.state
-        if txn.success?
-          payment = @order.payments.build source_attributes: {
-            xml: txn.xml,
-            flag: source.flag,
-            status: txn.status,
-            url: txn.url_autenticacao,
-            installments: source.installments
-          }, payment_method_id: method.id
-          payment.response_code = txn.tid
-          payment.save
+      payment.save
+      res = ActiveMerchant::Billing::Response.new txn.success?, txn.xml
+      payment.send :record_log, res
 
-          url = txn.url_autenticacao
-        else
-          @order.payments.create source_attributes: {
-            xml: txn.xml,
-            status: txn.codigo,
-            flag: source.flag,
-            installments: source.installments
-          }, payment_method_id: method.id
-          flash[:error] = t :payment_processing_failed
-        end
-        fire_event('spree.checkout.update')
-        redirect_to url
+      fire_event 'spree.checkout.update'
     end
+    redirect_to url
+  end
+
+  def payment_method_from_params
+    load_order
+    if @payment_params = object_params[:payments_attributes].first
+      if method_id = @payment_params[:payment_method_id]
+        Spree::PaymentMethod.find method_id
+      end
+    end
+  end
+
+  def payment
+    return @payment unless @payment.nil?
+
+    @payment = current_cielo_payment
+    if @payment
+      @payment.update_attributes @payment_params
+      @payment
+    else
+      @payment = @order.payments.build @payment_params
+    end
+  end
+
+  def current_cielo_payment
+    @order.payments.detect { |p|
+      p.checkout? and is_cielo? p.payment_method
+    }
   end
 end
