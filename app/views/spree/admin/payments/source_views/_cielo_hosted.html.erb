@@ -14,18 +14,13 @@
     </tr>
     <tr>
       <th>Status</th>
-      <td><%= source.display_status %></td>
+      <td><%= source.status %></td>
     </tr>
     <tr>
       <th>ID Transação Cielo (TID)</th>
       <td><%= source.payment.response_code %></td>
     </tr>
     <tr><th colspan="2">Histórico</th></tr>
-    <tr>
-      <th>Autorização</th>
-      <td><%= format_xml source.xml %></td>
-    </tr>
-    <tr><th colspan="2">Registros de Log</th></tr>
     <% payment.log_entries.each do |log| %>
     <tr>
       <th><%= log.created_at %></th>

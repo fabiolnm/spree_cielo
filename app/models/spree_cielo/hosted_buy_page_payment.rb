@@ -1,19 +1,23 @@
 module SpreeCielo
   class HostedBuyPagePayment < ActiveRecord::Base
-    attr_accessible :flag, :installments, :xml, :status, :url
+    attr_accessible :flag, :installments
 
     has_one :payment, class_name: 'Spree::Payment', foreign_key: :source_id
 
     def actions
       res = []
-      status = display_status
       res << :capture if status == :autorizada
       res << :credit  if status != :cancelada
       res
     end
 
-    def display_status
-      Cieloz::Transacao::STATUSES[status.to_s]
+    def status
+      last_log = payment.log_entries.last
+      if last_log
+        xml = YAML::load(last_log.details).message
+        status = Cieloz::Transacao.from(xml).status
+        Cieloz::Transacao::STATUSES[status.to_s]
+      end
     end
 
     class Gateway < Spree::Gateway
@@ -75,7 +79,6 @@ module SpreeCielo
         if consulta.valid?
           response = res.xml
           autorizada = res.autorizada?
-          source.update_attributes status: res.status
         else
           response = consulta.errors.messages
         end
