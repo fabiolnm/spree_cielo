@@ -4,10 +4,12 @@ module SpreeCielo
 
     has_one :payment, class_name: 'Spree::Payment', foreign_key: :source_id
 
+    # See http://guides.spreecommerce.com/payment_gateways.html, chapter 3
+    # for a complete payment status list
     def actions
       res = []
       res << :capture if payment.pending?
-      res << :credit  if payment.completed?
+      res << :void  if payment.completed?
       res
     end
 
@@ -76,14 +78,12 @@ module SpreeCielo
       end
 
       def capture money, tid, options = {}
-        operation = Cieloz::RequisicaoCaptura
-          .new dados_ec: ec, tid: tid, valor: money
+        operation = Cieloz::RequisicaoCaptura.new dados_ec: ec, tid: tid
         process_and_log operation, :capturada?
       end
 
-      def credit money, tid, options = {}
-        operation = Cieloz::RequisicaoCancelamento
-          .new dados_ec: ec, tid: tid, valor: money
+      def void tid, options = {}
+        operation = Cieloz::RequisicaoCancelamento.new dados_ec: ec, tid: tid
         process_and_log operation, :cancelada?
       end
 
