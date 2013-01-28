@@ -40,14 +40,10 @@ Spree::CheckoutController.class_eval do
 
       if txn.success?
         url = txn.url_autenticacao
-        payment.response_code = txn.tid
+        payment.update_attributes response_code: txn.tid
       else
         flash[:error] = t :payment_processing_failed
       end
-
-      payment.save
-      res = ActiveMerchant::Billing::Response.new txn.success?, txn.xml
-      payment.send :record_log, res
 
       fire_event 'spree.checkout.update'
     end

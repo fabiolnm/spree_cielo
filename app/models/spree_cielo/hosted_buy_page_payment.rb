@@ -108,7 +108,8 @@ module SpreeCielo
         txn.autorizacao_direta
         txn.nao_capturar_automaticamente
 
-        txn.submit
+        source.payment.send :record_log, process(txn, :criada?)
+        txn
       end
 
       private
