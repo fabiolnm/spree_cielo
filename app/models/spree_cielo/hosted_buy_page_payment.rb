@@ -68,21 +68,11 @@ module SpreeCielo
       end
 
       def authorize money, source, options = {}
-        response = ''
-        autorizada = false
-
         tid = source.payment.response_code
 
         # validate payment via requisicao-consulta service
-        consulta = Cieloz::RequisicaoConsulta.new dados_ec: ec, tid: tid
-        res = consulta.submit
-        if consulta.valid?
-          response = res.xml
-          autorizada = res.autorizada?
-        else
-          response = consulta.errors.messages
-        end
-        ActiveMerchant::Billing::Response.new autorizada, response
+        operation = Cieloz::RequisicaoConsulta.new dados_ec: ec, tid: tid
+        process operation, :autorizada?
       end
 
       def capture money, tid, options = {}
