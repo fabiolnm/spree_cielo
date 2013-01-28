@@ -72,19 +72,19 @@ module SpreeCielo
 
         # validate payment via requisicao-consulta service
         operation = Cieloz::RequisicaoConsulta.new dados_ec: ec, tid: tid
-        process operation, :autorizada?
+        process_and_log operation, :autorizada?
       end
 
       def capture money, tid, options = {}
         operation = Cieloz::RequisicaoCaptura
           .new dados_ec: ec, tid: tid, valor: money
-        process operation, :capturada?
+        process_and_log operation, :capturada?
       end
 
       def credit money, tid, options = {}
         operation = Cieloz::RequisicaoCancelamento
           .new dados_ec: ec, tid: tid, valor: money
-        process operation, :cancelada?
+        process_and_log operation, :cancelada?
       end
 
       def authorization_transaction order, source, callback_url
@@ -108,8 +108,9 @@ module SpreeCielo
         txn.autorizacao_direta
         txn.nao_capturar_automaticamente
 
-        source.payment.send :record_log, process(txn, :criada?)
-        txn
+        response, log = process txn, :criada?
+        source.payment.send :record_log, log
+        response
       end
 
       private
@@ -118,14 +119,19 @@ module SpreeCielo
       end
 
       def process operation, success_criteria
-        response, success = '', false
-        if res = operation.submit
-          response = res.xml
-          success = res.send success_criteria
+        log, success = '', false
+        response = operation.submit
+        if response
+          log = response.xml
+          success = response.send success_criteria
         else
-          response = operation.errors.messages
+          log = operation.errors.messages
         end
-        ActiveMerchant::Billing::Response.new success, response
+        [ response, ActiveMerchant::Billing::Response.new(success, log) ]
+      end
+
+      def process_and_log operation, success_criteria
+        process(operation, success_criteria).last
       end
     end
   end

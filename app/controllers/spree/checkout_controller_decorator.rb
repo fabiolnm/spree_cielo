@@ -40,7 +40,8 @@ Spree::CheckoutController.class_eval do
 
       if txn.success?
         url = txn.url_autenticacao
-        payment.update_attributes response_code: txn.tid
+        payment.response_code = txn.tid
+        payment.save
       else
         flash[:error] = t :payment_processing_failed
       end
