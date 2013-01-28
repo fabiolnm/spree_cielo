@@ -6,8 +6,8 @@ module SpreeCielo
 
     def actions
       res = []
-      res << :capture if status == :autorizada
-      res << :credit  if status != :cancelada
+      res << :capture if payment.pending?
+      res << :credit  if payment.completed?
       res
     end
 
@@ -85,44 +85,16 @@ module SpreeCielo
         ActiveMerchant::Billing::Response.new autorizada, response
       end
 
-      # source is only supported in profile gateways
       def capture money, tid, options = {}
-        response = ''
-        capturada = false
-
-        payment = Spree::Payment.find_by_response_code tid
-        source = payment.source
-
-        captura = Cieloz::RequisicaoCaptura.new dados_ec: ec, tid: tid, valor: money
-        res = captura.submit
-        if captura.valid?
-          response = res.xml
-          capturada = res.capturada?
-          source.update_attributes status: res.status
-        else
-          response = captura.errors.messages
-        end
-        ActiveMerchant::Billing::Response.new capturada, response
+        operation = Cieloz::RequisicaoCaptura
+          .new dados_ec: ec, tid: tid, valor: money
+        process operation, :capturada?
       end
 
-      # source is only supported in profile gateways
       def credit money, tid, options = {}
-        response = ''
-        cancelada = false
-
-        payment = Spree::Payment.find_by_response_code tid
-        source = payment.source
-
-        cancela = Cieloz::RequisicaoCancelamento.new dados_ec: ec, tid: tid, valor: money
-        res = cancela.submit
-        if cancela.valid?
-          response = res.xml
-          cancelada = res.cancelada?
-          source.update_attributes status: res.status
-        else
-          response = cancela.errors.messages
-        end
-        ActiveMerchant::Billing::Response.new cancelada, response
+        operation = Cieloz::RequisicaoCancelamento
+          .new dados_ec: ec, tid: tid, valor: money
+        process operation, :cancelada?
       end
 
       def authorization_transaction order, source, callback_url
@@ -152,6 +124,17 @@ module SpreeCielo
       private
       def ec
         Cieloz::DadosEc.new numero: api_number, chave: api_key
+      end
+
+      def process operation, success_criteria
+        response, success = '', false
+        if res = operation.submit
+          response = res.xml
+          success = res.send success_criteria
+        else
+          response = operation.errors.messages
+        end
+        ActiveMerchant::Billing::Response.new success, response
       end
     end
   end
