@@ -38,7 +38,7 @@ Spree::CheckoutController.class_eval do
       callback_url = request.url.gsub request.path, cielo_callback_path
       txn = method.authorization_transaction @order, payment.source, callback_url
 
-      if txn.success?
+      if txn and txn.success?
         url = txn.url_autenticacao
         payment.response_code = txn.tid
         payment.save
@@ -66,9 +66,12 @@ Spree::CheckoutController.class_eval do
     @payment = current_cielo_payment
     if @payment
       @payment.update_attributes @payment_params
+
+      # nested source_attributes were ignored on update! (dafuk!?), reasoning this line
+      @payment.source.update_attributes @payment_params[:source_attributes]
       @payment
     else
-      @payment = @order.payments.build @payment_params
+      @payment = @order.payments.create @payment_params
     end
   end
 
