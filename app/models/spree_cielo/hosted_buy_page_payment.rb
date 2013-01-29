@@ -121,12 +121,16 @@ module SpreeCielo
       def process operation, success_criteria
         log, success = '', false
         response = operation.submit
+        logger.info operation.to_xml
+
         if response
           log = response.xml
           success = response.send success_criteria
         else
           log = operation.errors.messages
         end
+
+        logger.info log
         [ response, ActiveMerchant::Billing::Response.new(success, log) ]
       end
 
