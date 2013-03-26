@@ -49,9 +49,17 @@ module SpreeCielo
         "cielo_hosted"
       end
 
+      def test_credentials
+        if Cieloz::Configuracao.store_mode?
+          Cieloz::Homologacao::Credenciais::LOJA
+        else
+          Cieloz::Homologacao::Credenciais::CIELO
+        end
+      end
+
       def api_number
         if preferences[:test_mode]
-          Cieloz::DadosEc::TEST_MOD_CIELO.numero
+          test_credentials[:numero]
         else
           preferences[:api_number]
         end
@@ -59,7 +67,7 @@ module SpreeCielo
 
       def api_key
         if preferences[:test_mode]
-          Cieloz::DadosEc::TEST_MOD_CIELO.chave
+          test_credentials[:chave]
         else
           preferences[:api_key]
         end
@@ -73,40 +81,25 @@ module SpreeCielo
         tid = source.payment.response_code
 
         # validate payment via requisicao-consulta service
-        operation = Cieloz::RequisicaoConsulta.new dados_ec: ec, tid: tid
+        operation = Cieloz.consulta self
         process_and_log operation, :autorizada?
       end
 
       def capture money, tid, options = {}
-        operation = Cieloz::RequisicaoCaptura.new dados_ec: ec, tid: tid
+        operation = Cieloz.captura self
         process_and_log operation, :capturada?
       end
 
       def void tid, options = {}
-        operation = Cieloz::RequisicaoCancelamento.new dados_ec: ec, tid: tid
+        operation = Cieloz.cancelamento self
         process_and_log operation, :cancelada?
       end
 
       def authorization_transaction order, source, callback_url
-        pedido = Cieloz::RequisicaoTransacao::DadosPedido
-        .new numero: order.number,
-          valor: (order.total * 100).round,
-          moeda: 986, # TODO use https://github.com/hexorx/countries
-          idioma: "PT",
-          descricao: "", # TODO provide a description?
-          data_hora: Time.now,
-          soft_descriptor: soft_descriptor
-
-        pagamento = Cieloz::RequisicaoTransacao::FormaPagamento.new
-                    .parcelado_loja source.flag, source.installments
-
-        txn = Cieloz::RequisicaoTransacao.new
-        txn.dados_ec = ec
-        txn.dados_pedido = pedido
-        txn.forma_pagamento = pagamento
-        txn.url_retorno = callback_url
-        txn.autorizacao_direta
-        txn.nao_capturar_automaticamente
+        pedido    = Cieloz.pedido order, numero: :number, valor: (order.total * 100).round
+        pagamento = Cieloz.pagamento source, operacao: :flag, parcelas: :installments
+        transacao = Cieloz.transacao self, dados_pedido: pedido,
+          forma_pagamento: pagamento, url_retorno: callback_url
 
         response, log = process txn, :criada?
         source.payment.send :record_log, log
@@ -114,8 +107,8 @@ module SpreeCielo
       end
 
       private
-      def ec
-        Cieloz::DadosEc.new numero: api_number, chave: api_key
+      def dados_ec
+        Cieloz::Requisicao::DadosEc.new numero: api_number, chave: api_key
       end
 
       def process operation, success_criteria
